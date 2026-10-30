@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Um recado pra você</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500&display=swap">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; }
+/* Layout: uma coluna centrada; o botão redondo é a página e a mensagem se abre logo abaixo dele. */
+:root {
+  --bg: #f8f0fb;
+  --fg: #2c2040;
+  --muted: #6b5b85;
+  --accent: #d63f78;
+  --accent-ink: #ffffff;
+  --glow: #f2b3d1;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1328;
+    --fg: #f6ecff;
+    --muted: #b9a6d3;
+    --accent: #ff6f9f;
+    --accent-ink: #2a0f1d;
+    --glow: #7a2b57;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1328;
+  --fg: #f6ecff;
+  --muted: #b9a6d3;
+  --accent: #ff6f9f;
+  --accent-ink: #2a0f1d;
+  --glow: #7a2b57;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.5;
+  padding-block: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage {
+  width: 100%;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+.kicker {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+
+.orb {
+  position: relative;
+  width: clamp(150px, 44vw, 210px);
+  aspect-ratio: 1;
+  max-width: 100%;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.1rem, 4.6vw, 1.35rem);
+  color: var(--accent-ink);
+  background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--accent) 70%, #fff) 0%, var(--accent) 55%, color-mix(in srgb, var(--accent) 80%, #000) 100%);
+  box-shadow: 0 18px 50px -10px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 0 10px color-mix(in srgb, var(--glow) 45%, transparent);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: ring 2.8s ease-out infinite;
+  pointer-events: none;
+}
+.orb:hover { transform: scale(1.04); }
+.orb:active { transform: scale(0.96); }
+.orb:focus-visible { outline: 3px solid var(--fg); outline-offset: 8px; }
+.opened .orb { width: clamp(96px, 28vw, 130px); font-size: 0.95rem; }
+.opened .orb::after { animation: none; }
+.orb { transition: transform 0.25s ease, width 0.5s ease, font-size 0.5s ease; }
+
+@keyframes ring {
+  0% { transform: scale(0.96); opacity: 0.55; }
+  70%, 100% { transform: scale(1.35); opacity: 0; }
+}
+
+.msg {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s ease;
+  width: 100%;
+}
+.opened .msg { grid-template-rows: 1fr; }
+.msg > .inner { min-height: 0; overflow: hidden; }
+
+.lines { display: flex; flex-direction: column; gap: 14px; padding-block: 4px; }
+.line {
+  margin: 0;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.line.in { opacity: 1; transform: none; }
+.line.big {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 9vw, 3.1rem);
+  line-height: 1.08;
+  text-wrap: balance;
+  color: var(--accent);
+}
+.line.mid {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 5.4vw, 1.6rem);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.line.soft {
+  color: var(--muted);
+  font-size: 1.05rem;
+  text-wrap: balance;
+}
+
+canvas#fx {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb::after { animation: none; }
+  .line { transition: opacity 0.3s ease; transform: none; }
+  .msg { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<main class="stage" id="stage">
+  <p class="kicker">Um recado pra você</p>
+  <button class="orb" id="orb" type="button" aria-controls="msg">Toque aqui</button>
+  <div class="msg" id="msg" aria-live="polite">
+    <div class="inner"><div class="lines" id="lines"></div></div>
+  </div>
+</main>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script>
+(function () {
+  var messages = [
+    ["Você é incrível.", "Você merece tudo de bom, perfeito e maravilhoso.", "Estou com você sempre que precisar, independente de para o quê."],
+    ["Você é mais forte do que imagina.", "Tudo de bom que chega até você é merecido.", "Pode voltar aqui quando quiser. Estou com você, para o que for."],
+    ["Que bom que você existe.", "Você merece o melhor, sempre.", "Conte comigo sempre que precisar, independente de para o quê."]
+  ];
+  var idx = 0;
+  var stage = document.getElementById("stage");
+  var orb = document.getElementById("orb");
+  var lines = document.getElementById("lines");
+  var canvas = document.getElementById("fx");
+  var ctx = canvas.getContext("2d");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var classes = ["big", "mid", "soft"];
+
+  function showMessage() {
+    var set = messages[idx];
+    idx = (idx + 1) % messages.length;
+    lines.innerHTML = "";
+    set.forEach(function (text, i) {
+      var p = document.createElement("p");
+      p.className = "line " + classes[i];
+      p.textContent = text;
+      p.style.transitionDelay = (0.35 + i * 0.55) + "s";
+      lines.appendChild(p);
+    });
+    void lines.offsetWidth;
+    Array.prototype.forEach.call(lines.children, function (el) { el.classList.add("in"); });
+  }
+
+  var particles = [], raf = 0;
+  function sizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function burst() {
+    if (reduce) return;
+    sizeCanvas();
+    var r = orb.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var cs = getComputedStyle(document.documentElement);
+    var colors = [cs.getPropertyValue("--accent").trim(), cs.getPropertyValue("--glow").trim(), cs.getPropertyValue("--fg").trim()];
+    for (var i = 0; i < 46; i++) {
+      var a = Math.random() * Math.PI * 2;
+      var s = 1.2 + Math.random() * 3.2;
+      particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s - 1.4,
+        r: 2 + Math.random() * 4,
+        life: 1,
+        decay: 0.008 + Math.random() * 0.01,
+        c: colors[i % 3]
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    particles = particles.filter(function (p) { return p.life > 0; });
+    particles.forEach(function (p) {
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.985; p.vy = p.vy * 0.985 - 0.02;
+      p.life -= p.decay;
+      ctx.globalAlpha = Math.max(p.life, 0);
+      ctx.fillStyle = p.c;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    if (particles.length) { raf = requestAnimationFrame(tick); }
+    else { raf = 0; ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); }
+  }
+
+  orb.addEventListener("click", function () {
+    var first = !stage.classList.contains("opened");
+    stage.classList.add("opened");
+    orb.textContent = "Mais uma vez";
+    showMessage();
+    burst();
+  });
+  window.addEventListener("resize", function () { if (!raf) sizeCanvas(); });
+})();
+</script>
+
+</body>
+</html>
